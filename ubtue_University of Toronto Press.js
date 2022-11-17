@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2020-11-13 21:24:34"
+	"lastUpdated": "2022-03-31 14:53:46"
 }
 
 /*
@@ -33,6 +33,8 @@
 	***** END LICENSE BLOCK *****
 */
 
+var openAccesArticles = [];
+
 function detectWeb(doc, url) {
 	if (url.match(/\/toc\//))
 		return "multiple";
@@ -45,13 +47,18 @@ function detectWeb(doc, url) {
 function getSearchResults(doc) {
 	var items = {};
 	var found = false;
-	var rows = ZU.xpath(doc, '//div[@class="art_title linkable"]/a')
+	var rows = ZU.xpath(doc, '//div[@class="art_title linkable"]/a');
 	for (let i=0; i<rows.length; i++) {
 		let href = rows[i].href;
 		let title = ZU.trimInternal(rows[i].textContent);
 		if (!href || !title) continue;
 		found = true;
 		items[href] = title;
+	}
+	for (let tag of ZU.xpath(doc, '//table[@class="articleEntry"]')) {
+		if (ZU.xpathText(tag, './/img[@title="Open Access"]/@title') != null) {
+			openAccesArticles.push(ZU.xpathText(tag, './/div[@class="art_title linkable"]/a/@href'));
+		}
 	}
 	return found ? items : false;
 }
@@ -69,17 +76,24 @@ function postProcess(doc, item) {
 		item.pages = match[1];
 
 	let abstract = ZU.xpathText(doc, '//div[contains(@class, "abstractInFull")]//p');
-	if (!item.abstractNote || item.abstractNote.length < abstract.length)
+	if (abstract != null) {
+	if (!item.abstractNote)
 		item.abstractNote = abstract;
+	else if (item.abstractNote.length < abstract.length)
+		item.abstractNote = abstract;
+	}
 
 	let keywords = ZU.xpath(doc, '//kwd-group//a');
 	if (keywords)
 		item.tags = keywords.map(function(x) { return x.textContent.trim(); })
 	
 	if (!item.DOI) item.DOI = ZU.xpathText(doc, '//meta[@name="dc.Identifier" and @scheme="doi"]/@content');
-
-	let publicationTitle = ZU.xpathText(doc, '//meta[@name="citation_journal_title"]/@content');Z.debug(publicationTitle)
+	if (ZU.xpathText(doc, '//meta[@name="dc.Type"]/@content') == "book-review")  item.tags.push("RezensionstagPica");
+	let publicationTitle = ZU.xpathText(doc, '//meta[@name="citation_journal_title"]/@content');
 	item.ISSN  = mapTitleIssn(publicationTitle); //Z.debug(item.ISSN)
+	if (openAccesArticles.includes(item.url.replace("https://www.utpjournals.press", ""))) {
+		item.notes.push('LF:');
+	}
 	item.complete();
 }
 
@@ -118,6 +132,7 @@ function doWeb(doc, url) {
 	} else
 		invokeEmbeddedMetadataTranslator(doc, url);
 }
+
 /** BEGIN TEST CASES **/
 var testCases = [
 	{
@@ -137,7 +152,7 @@ var testCases = [
 				"date": "2020-07-02",
 				"DOI": "10.3138/tjt-2020-0003",
 				"ISSN": "1918-6371",
-				"abstractNote": "Quantum mechanics has recently indicated that temporal order is not always fixed, a finding that has far-reaching philosophical and theological implications. The phenomena, termed “indefinite causal order,” shows that events can be in a superposition with regard to their order. In the experimental setting with which this article is concerned, two events, A and B, were shown to be in the ordering relations “A before B” and “B before A” at the same time. This article introduces an ongoing project that seeks to make sense of this result, with a particular focus on the methodology by which this research will be undertaken. Specific research questions, particularly regarding what indefinite causal order might mean for the metaphysics of time and the doctrine of salvation, are introduced. The collaborative approach detailed brings together the disciplinary skills of a working scientist and a working theologian. What is offered is a collaborative methodology for interaction between science and religion that is more than the sum of its parts. Alister McGrath’s idea of multiple rationalities is employed as an epistemological framework within which this research takes place. Within an epistemologically pluralistic model, collaborative efforts are not only encouraged but necessary. Complex reality requires an equally complex, usually interdisciplinary, explanation. I argue that such dialogue is both theologically justified and culturally valuable and indicates the direction in which this research will be taken.",
+				"abstractNote": "Video Abstract Quantum Mechanics and Salvation: A New Meeting Point for Science and Theology Quantum mechanics has recently indicated that temporal order is not always fixed, a finding that has far-reaching philosophical and theological implications. The phenomena, termed “indefinite causal order,” shows that events can be in a superposition with regard to their order. In the experimental setting with which this article is concerned, two events, A and B, were shown to be in the ordering relations “A before B” and “B before A” at the same time. This article introduces an ongoing project that seeks to make sense of this result, with a particular focus on the methodology by which this research will be undertaken. Specific research questions, particularly regarding what indefinite causal order might mean for the metaphysics of time and the doctrine of salvation, are introduced. The collaborative approach detailed brings together the disciplinary skills of a working scientist and a working theologian. What is offered is a collaborative methodology for interaction between science and religion that is more than the sum of its parts. Alister McGrath’s idea of multiple rationalities is employed as an epistemological framework within which this research takes place. Within an epistemologically pluralistic model, collaborative efforts are not only encouraged but necessary. Complex reality requires an equally complex, usually interdisciplinary, explanation. I argue that such dialogue is both theologically justified and culturally valuable and indicates the direction in which this research will be taken.",
 				"archiveLocation": "world",
 				"issue": "1",
 				"language": "en",
@@ -146,7 +161,7 @@ var testCases = [
 				"publicationTitle": "Toronto Journal of Theology",
 				"rights": "Toronto Institute of Theology 2019",
 				"shortTitle": "Quantum Mechanics and Salvation",
-				"url": "https://utpjournals.press/doi/abs/10.3138/tjt-2020-0003",
+				"url": "https://utpjournals.press/doi/full/10.3138/tjt-2020-0003",
 				"volume": "36",
 				"attachments": [
 					{
@@ -207,7 +222,7 @@ var testCases = [
 				"publicationTitle": "The Journal of Religion and Popular Culture",
 				"rights": "© University of Toronto Press",
 				"shortTitle": "A Shift in Mithya",
-				"url": "https://www.utpjournals.press/doi/abs/10.3138/jrpc.2017-0034",
+				"url": "https://www.utpjournals.press/doi/full/10.3138/jrpc.2017-0034",
 				"volume": "31",
 				"attachments": [
 					{
@@ -264,7 +279,7 @@ var testCases = [
 				"publicationTitle": "The Journal of Religion and Popular Culture",
 				"rights": "© University of Toronto Press",
 				"shortTitle": "A Charlie Brown Religion",
-				"url": "https://www.utpjournals.press/doi/abs/10.3138/jrpc.2017-0068",
+				"url": "https://www.utpjournals.press/doi/full/10.3138/jrpc.2017-0068",
 				"volume": "31",
 				"attachments": [
 					{
@@ -272,7 +287,11 @@ var testCases = [
 						"mimeType": "text/html"
 					}
 				],
-				"tags": [],
+				"tags": [
+					{
+						"tag": "RezensionstagPica"
+					}
+				],
 				"notes": [],
 				"seeAlso": []
 			}
@@ -303,7 +322,7 @@ var testCases = [
 				"pages": "125-137",
 				"publicationTitle": "Toronto Journal of Theology",
 				"rights": "Toronto Institute of Theology 2020",
-				"url": "https://utpjournals.press/doi/abs/10.3138/tjt-2020-0085",
+				"url": "https://utpjournals.press/doi/full/10.3138/tjt-2020-0085",
 				"volume": "36",
 				"attachments": [
 					{
@@ -332,6 +351,11 @@ var testCases = [
 				"seeAlso": []
 			}
 		]
+	},
+	{
+		"type": "web",
+		"url": "https://www.utpjournals.press/toc/tjt/37/2",
+		"items": "multiple"
 	}
 ]
 /** END TEST CASES **/

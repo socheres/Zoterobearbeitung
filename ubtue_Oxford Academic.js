@@ -5,11 +5,11 @@
 	"target": "^https?://academic.oup.com",
 	"minVersion": "3.0",
 	"maxVersion": "",
-	"priority": 100,
-	"inRepository": false,
+	"priority": 99,
+	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2020-08-27 13:03:35"
+	"lastUpdated": "2022-08-16 15:43:33"
 }
 
 /*
@@ -68,6 +68,31 @@ function invokeEmbeddedMetadataTranslator(doc, url) {
 		var tagreview = ZU.xpathText(doc, '//*[(@id = "ContentTab")]//a')
 		if (tagreview.match(/Reviews|Book Reviews/i)) delete i.abstractNote;
 		if (tagreview.match(/Reviews|Book Reviews/i)) i.tags.push('RezensionstagPica');
+		if (ZU.xpathText(doc, '//i[@class="icon-availability_open"]/@title') != null) {
+			if (ZU.xpathText(doc, '//i[@class="icon-availability_open"]/@title').match(/open access/i)) {
+				i.notes.push("LF:");
+			}
+		}
+		else if (ZU.xpathText(doc, '//i[@class="icon-availability_free"]/@title') != null) {
+			if (ZU.xpathText(doc, '//i[@class="icon-availability_free"]/@title').match(/free/i)) {
+				i.notes.push("LF:");
+			}
+		}
+		let orcid = 'lala';
+		let author_information_tags = ZU.xpath(doc, '//div[contains(@class,"authorInfo_OUP_ArticleTop_Info_Widget")]');
+		for (let a = 0; a < author_information_tags.length; a++) {
+			if (ZU.xpathText(author_information_tags[a], './/div[@class="info-card-location"]') != null) {
+				let orcid = ZU.xpathText(author_information_tags[a], './/div[@class="info-card-location"]').trim();
+				orcid = orcid.replace('https://orcid.org/', '');
+				let author = ZU.xpathText(author_information_tags[a], './/div[@class="info-card-name"]').trim();
+				i.notes.push({note: "orcid:" + orcid + ' | ' + author});
+			}
+		}
+		if (ZU.xpathText(doc, '//div[contains(@class, "pub-date")]')) {
+			if (ZU.xpathText(doc, '//div[contains(@class, "pub-date")]').match(/\d{4}/)) {
+				i.date = ZU.xpathText(doc, '//div[contains(@class, "pub-date")]').match(/\d{4}/)[0];
+			}
+		}
 		i.complete();
 	});
 	translator.translate();
@@ -88,6 +113,8 @@ function doWeb(doc, url) {
 	} else
 		invokeEmbeddedMetadataTranslator(doc, url);
 }
+
+
 /** BEGIN TEST CASES **/
 var testCases = [
 	{

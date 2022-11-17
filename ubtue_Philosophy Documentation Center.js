@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2021-06-21 15:46:21"
+	"lastUpdated": "2022-11-03 16:21:26"
 }
 
 /*
@@ -77,11 +77,15 @@ function scrape(doc) {
 		i.itemType = "journalArticle";
 		//scrape ISSN
 		let issnEntry = ZU.xpathText(doc, '//script[@type="text/javascript"]');
-		if(issnEntry && issnEntry.match(/Online_ISSN/i)) i.ISSN = issnEntry.match(/Online_ISSN=\d{4}-\d{3}(\d|x)/i)[0].match(/\d{4}-\d{3}(\d|x)/i)[0];
+		if(issnEntry && issnEntry.match(/Online_ISSN/i) && issnEntry.match(/Online_ISSN=(\d{4}-\d{3}[\dx])/i)) i.ISSN = issnEntry.match(/Online_ISSN=(\d{4}-\d{3}[\dx])/i)[1];
+		if(issnEntry && issnEntry.match(/Print_ISSN/i) && issnEntry.match(/Print_ISSN=(\d{4}-\d{3}[\dx])/i)) i.ISSN = issnEntry.match(/Print_ISSN=(\d{4}-\d{3}[\dx])/i)[1];
+		if(issnEntry && issnEntry.match(/Book Review/i)) i.tags.push('RezensionstagPica');
+		i.attachments = [];
 		i.complete();
 	});
 	translator.translate();
 }
+
 /** BEGIN TEST CASES **/
 var testCases = [
 	{
@@ -161,6 +165,51 @@ var testCases = [
 					}
 				],
 				"tags": [],
+				"notes": [],
+				"seeAlso": []
+			}
+		]
+	},
+	{
+		"type": "web",
+		"url": "https://www.pdcnet.org/acpq/content/acpq_2021_0095_0001_0155_0160",
+		"items": [
+			{
+				"itemType": "journalArticle",
+				"title": "John Henry Newman on Truth and its Counterfeits: A Guide For Our Times. By Reinhard Hütter",
+				"creators": [
+					{
+						"firstName": "Philip",
+						"lastName": "Rolnick",
+						"creatorType": "author"
+					}
+				],
+				"date": "2021/02/23",
+				"DOI": "10.5840/acpq20219516",
+				"ISSN": "2153-8441",
+				"issue": "1",
+				"language": "en",
+				"libraryCatalog": "www.pdcnet.org",
+				"pages": "155-160",
+				"publicationTitle": "American Catholic Philosophical Quarterly",
+				"shortTitle": "John Henry Newman on Truth and its Counterfeits",
+				"url": "https://www.pdcnet.org/pdc/bvdb.nsf/purchase?openform&fp=acpq&id=acpq_2021_0095_0001_0155_0160",
+				"volume": "95",
+				"attachments": [
+					{
+						"title": "Full Text PDF",
+						"mimeType": "application/pdf"
+					},
+					{
+						"title": "Snapshot",
+						"mimeType": "text/html"
+					}
+				],
+				"tags": [
+					{
+						"tag": "RezensionstagPica"
+					}
+				],
 				"notes": [],
 				"seeAlso": []
 			}

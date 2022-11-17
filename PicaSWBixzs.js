@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 2,
 	"browserSupport": "gcs",
-	"lastUpdated": "2021-10-15 13:05:00"
+	"lastUpdated": "2021-12-14 13:37:00"
 }
 
 
@@ -68,7 +68,7 @@ var journal_title_to_language_code = {
 
 /* =============================================================================================================== */
 // ab hier Programmcode
-var defaultSsgNummer = "1";
+var defaultSsgNummer = "";
 var defaultLanguage = "eng";
 
 //8012 mehrere Abrufzeichen werden durch $a getrennt, nicht wie bisher durch Semikolon. Also: 8012 ixzs$aixzo
@@ -214,7 +214,7 @@ async function processDocumentsCustom (url, processor, processorParams, onDone, 
 
 function addLine(itemid, code, value) {
     //Zeile zusammensetzen
-    var line = code + " " + value.replace('|s|RezensionstagPica', '').replace(/\t/g, '').replace(/\|s\|peer\s?reviewed?/i, '|f|Peer reviewed').replace(/\|s\|book\s+reviews?/i, '|f|Book Reviews').replace(' $d', '$d').replace('https://doi.org/https://doi.org/', 'https://doi.org/').replace(/@\s/, '@');
+    var line = code + " " + value.replace('|s|RezensionstagPica', '').replace(/\t/g, '').replace(/\|s\|peer\s?reviewed?/i, '|f|Peer reviewed').replace(/\|s\|book\s+reviews?/i, '|f|Book Reviews').replace('https://doi.org/https://doi.org/', 'https://doi.org/').replace(/@\s/, '@').replace('abs1:', '').replace('doi:https://doi.org/', '').replace('handle:https://hdl.handle.net/', '');
     itemsOutputCache[itemid].push(line);
 }
 
@@ -375,7 +375,7 @@ function performExport() {
 
         //1131 Art des Inhalts
         for (i=0; i<item.tags.length; i++) {
-			if (item.tags[i].tag.match(/RezensionstagPica|Book Reviews/)) {
+			if (item.tags[i].tag.match(/RezensionstagPica|Book Reviews?/gi)) {
 				addLine(currentItemId, "1131", "!106186019!");
 			}
 		}
@@ -421,6 +421,26 @@ function performExport() {
                 addLine(currentItemId, "2053", item.DOI.replace('https://doi.org/', ''));
             }
         }
+		
+		//item.notes as second doi --> 2051
+		if (item.notes) {
+			for (let i in item.notes) {
+				if (item.notes[i].note.includes('doi:')) {
+					addLine(currentItemId, "2051", ZU.unescapeHTML(item.notes[i].note.replace('doi:https://doi.org/', '')));
+					addLine(currentItemId, "4950", ZU.unescapeHTML(item.notes[i].note.replace(/doi:/i, '') + "$xR$3Volltext$4LF$534"));
+				}
+			}
+		}
+		
+		//item.notes as handle --> 2052
+		if (item.notes) {
+			for (let i in item.notes) {
+				if (item.notes[i].note.includes('handle:')) {
+					addLine(currentItemId, "2052", ZU.unescapeHTML(item.notes[i].note.replace(/handle:https?:\/\/hdl\.handle\.net\//i, '')));
+					addLine(currentItemId, "4950", ZU.unescapeHTML(item.notes[i].note.replace(/handle:/i, '') + "$xR$3Volltext$4LF$534"));
+				}
+			}
+		}
 
         //Autoren --> 3000, 3010
         //Titel, erster Autor --> 4000
@@ -428,10 +448,10 @@ function performExport() {
         if (item.shortTitle == "journalArticle") {
             titleStatement += item.shortTitle;
             if (item.title && item.title.length > item.shortTitle.length) {
-                titleStatement += "$d" + ZU.unescapeHTML(item.title.substr(item.shortTitle.length).replace(/:(?!\d)\s*/,''));
+                titleStatement += ZU.unescapeHTML(item.title.substr(item.shortTitle.length));
             }
         } else {
-            titleStatement += item.title.replace(/:(?!\d)\s*/,'$d');
+            titleStatement += item.title;
         }
         //Sortierzeichen hinzufügen, vgl. https://github.com/UB-Mannheim/zotkat/files/137992/ARTIKEL.pdf
         if (item.language == "ger" || !item.language) {
@@ -497,7 +517,7 @@ function performExport() {
 
                 //Lookup für Autoren
                 if (authorName[0] != "!") {
-                    var lookupUrl = "https://swb.bsz-bw.de/DB=2.104/SET=70/TTL=1/CMD?SGE=&ACT=SRCHM&MATCFILTER=Y&MATCSET=Y&NOSCAN=Y&PARSE_MNEMONICS=N&PARSE_OPWORDS=N&PARSE_OLDSETS=N&IMPLAND=Y&NOABS=Y&ACT0=SRCHA&SHRTST=50&IKT0=3040&TRM0=" + authorName + "&ACT1=*&IKT1=2057&TRM1=*&ACT2=*&IKT2=8991&TRM2=(theolog*|neutestament*|alttestament*|kirchenhist*)&ACT3=-&IKT3=8991&TRM3=1[0%2C1%2C2%2C3%2C4%2C5%2C6%2C7][0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9][0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9]"
+                    var lookupUrl = "https://swb.bsz-bw.de/DB=2.104/SET=70/TTL=1/CMD?SGE=&ACT=SRCHM&MATCFILTER=Y&MATCSET=Y&NOSCAN=Y&PARSE_MNEMONICS=N&PARSE_OPWORDS=N&PARSE_OLDSETS=N&IMPLAND=Y&NOABS=Y&ACT0=SRCHA&SHRTST=50&IKT0=3040&TRM0=" + authorName + "&ACT1=*&IKT1=2057&TRM1=*&ACT2=*&IKT2=8991&TRM2=(theolog*|neutestament*|alttestament*|kirchenhist*)&ACT3=-&IKT3=8991&TRM3=1[0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8][0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9][0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9]"
 
                     /*
                     lookupUrl kann je nach Anforderung noch spezifiziert werden.
@@ -684,9 +704,9 @@ function performExport() {
 		}
 		if (item.DOI && !item.url) {
 			if (licenceField === "l") {
-				addLine(currentItemId, "\\n4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4LF$534");
+				addLine(currentItemId, "4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4LF$534");
 			} else if (!licenceField) {
-				addLine(currentItemId, "\\n4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4ZZ$534");
+        addLine(currentItemId, "4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4ZZ$534");
 			}
 		}		
 		//Reihe --> 4110
@@ -727,7 +747,7 @@ function performExport() {
 
 			//SSG bzw. FID-Nummer --> 5056 "0" = Religionwissenschaft | "1" = Theologie | "0; 1" = RW & Theol.
 
-            if (SsgField === "0" || SsgField === "0$a1" || SsgField === "FID-KRIM-DE-21") { 
+            if (SsgField === "1" || SsgField === "0" || SsgField === "0$a1" || SsgField === "FID-KRIM-DE-21") { 
                 addLine(currentItemId, "5056", SsgField);
             } else {
                 addLine(currentItemId, "5056", defaultSsgNummer);
