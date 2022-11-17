@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 2,
 	"browserSupport": "gcs",
-	"lastUpdated": "2022-02-25 11:35:00"
+	"lastUpdated": "2022-11-17 16:05:27"
 }
 
 // Zotero Export Translator in Pica3 Format für das Einzeln- und Mulitiupload in WinIBW
@@ -21,8 +21,7 @@
 	***** BEGIN LICENSE BLOCK *****
 	Copyright © 2020 Universitätsbibliothek Tübingen.  All rights reserved.
 	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU Affero General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	it under the terms of the GNU Affero General Public License as published by	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -35,15 +34,15 @@
 
 /* =============================================================================================================== */
 // Mapping tables that get populated with the entries from their corresponding map files in the Github repo
-var issn_to_language_code = {};
-var issn_to_license = {};
-var issn_to_physical_form = {};
-var issn_to_ssg_zotkat = {};
-var issn_to_superior_ppn = {};
-var issn_to_volume = {};
-var language_to_language_code = {};
-var notes_to_ixtheo_notations = {};
-var journal_title_to_ppn = {};
+var issn_to_language_code = {};// https://github.com/ubtue/zotero-enhancement-maps/blob/master/ISSN_to_language_code.map
+var issn_to_license = {};// https://github.com/ubtue/zotero-enhancement-maps/blob/master/ISSN_to_licence.map
+var issn_to_physical_form = {};// https://github.com/ubtue/zotero-enhancement-maps/blob/master/ISSN_to_physical_form.map
+var issn_to_ssg_zotkat = {};// https://github.com/ubtue/zotero-enhancement-maps/blob/master/ISSN_to_SSG_zotkat.map
+var issn_to_superior_ppn = {};// https://github.com/ubtue/zotero-enhancement-maps/blob/master/ISSN_to_superior_ppn.map
+var issn_to_volume = {}; // https://github.com/ubtue/zotero-enhancement-maps/blob/master/ISSN_to_volume.map
+var language_to_language_code = {}; // https://github.com/ubtue/zotero-enhancement-maps/blob/master/language_to_language_code.map
+var notes_to_ixtheo_notations = {};// https://github.com/ubtue/zotero-enhancement-maps/blob/master/notes_to_ixtheo_notations.map
+var journal_title_to_ppn = {};// https://github.com/ubtue/zotero-enhancement-maps/blob/master/journal_title_to_ppn.map
 var publication_title_to_physical_form = {};
 var issn_to_institution = {};
 var issn_to_collection_code = {};
@@ -70,14 +69,10 @@ var journal_title_to_language_code = {
 // ab hier Programmcode
 var defaultSsgNummer = undefined;
 var defaultLanguage = "eng";
-
-//lokaldatensatz z.B. \\n6700 !372049834!\\n6700 !37205241X!\\n6700 !372053025!\\n6700!37205319X!
-
+// Hilfetexte zu der PICA3 Kategorie siehe https://swbtools.bsz-bw.de/cgi-bin/k10plushelp.pl?cmd=pplist&katalog=Standard&val=000Q&adm=0
 //item.type --> 0500 Bibliographische Gattung und Status
-//http://swbtools.bsz-bw.de/winibwhelp/Liste_0500.htm
-// TODO: check if the folowing 3 variables are being used correctly
-var cataloguingStatus = "n";//0500 Position 3
-var cataloguingStatusO = "n";//0500 Position 3
+var cataloguingStatus = "n";//0500 Position 3: Status
+var cataloguingStatusO = "n";//0500 Position 3: Status
 
 /*
     WICHTIG - ERST LESEN UND !!!VERSTEHEN!!! BEVOR ÄNDERUNGEN GEMACHT WERDEN
@@ -184,7 +179,7 @@ var currentItemId = -1;
 var itemsOutputCache = []
 var authorMapping = {};
 
-/**
+/*
  * Diese Funktion dient als Ersatz für Zotero.ProcessDocuments
  * Mit dieser Funktion ist es möglich, der processor-Funktion eine zusätzliche Variable weiterzugeben ("processorParams").
  * Notwendig um z.B. Kopien globaler Variablen weiterzugeben, die sonst den Wert ändern
@@ -232,11 +227,6 @@ function EscapeNonASCIICharacters(unescaped_string) {
 }
 
 function addLine(itemid, code, value) {
-    //if (value == undefined) {
-		//Zotero.write('application.messageBox("Upload fehlgeschlagen", "Eintrag in Feldnummer ' + code + ' ist nicht definiert", "alert-icon")\n');
-	//}
-	
-
     //Zeile zusammensetzen
 	if (value == undefined) {
 		value = "Für Feld " +  code.replace(/\\n/, '') + " wurde kein Eintrag hinterlegt";
@@ -300,15 +290,14 @@ function performExport() {
         currentItemId++;
         itemsOutputCache[currentItemId] = [];
 
-		var physicalForm = "";//0500 Position 1
-		var licenceField = ""; // 0500 Position 4 only for Open Access Items; http://swbtools.bsz-bw.de/cgi-bin/help.pl?cmd=kat&val=4085&regelwerk=RDA&verbund=SWB
-		var SsgField = "";
+		var physicalForm = "";//0500 Position 1: Physische Form
+		var licenceField = "";
+		var ssgField = "";
 		var superiorPPN = "";
 		var journalTitlePPN = "";
 		var issn_to_language = "";
 		var institution_retrieve_sign = "";
 		var collection_code = "";
-		var retrieve_sign = "";
 		if (!item.ISSN)
 				item.ISSN = "";
 		if (item.ISSN.substring(0,4) != "IXTH") item.ISSN = ZU.cleanISSN(item.ISSN);
@@ -322,18 +311,19 @@ function performExport() {
 			Z.debug("Found lang:" + item.language);
 		}
 		if (issn_to_ssg_zotkat.get(item.ISSN) !== undefined) {
-			SsgField = issn_to_ssg_zotkat.get(item.ISSN);
+			ssgField = issn_to_ssg_zotkat.get(item.ISSN);
+			Z.debug("Found lang:" + ssgField);
 		}
 		if (!item.volume && issn_to_volume.get(item.ISSN) !== undefined) {
 			item.volume = issn_to_volume.get(item.ISSN) + item.volume;
 			Z.debug("Found volume:" + item.volume);
 		}
 		if (issn_to_physical_form.get(item.ISSN) !== undefined) {
-			physicalForm = issn_to_physical_form.get(item.ISSN); // position 1 http://swbtools.bsz-bw.de/winibwhelp/Liste_0500.htm
+			physicalForm = issn_to_physical_form.get(item.ISSN);
 			Z.debug("Found physicalForm:" + physicalForm);
 		}
 		if (issn_to_license.get(item.ISSN) !== undefined) {
-			licenceField = issn_to_license.get(item.ISSN); // position 4 http://swbtools.bsz-bw.de/winibwhelp/Liste_0500.htm
+			licenceField = issn_to_license.get(item.ISSN);
 			Z.debug("Found license:" + licenceField);
         }
 		if (issn_to_superior_ppn.get(item.ISSN) !== undefined) {
@@ -361,14 +351,13 @@ function performExport() {
 		switch (item.itemType) {
 			case "journalArticle":
 			case "bookSection":
-			case "magazineArticle": // wird bei der Erfassung von Rezensionen verwendet. Eintragsart "Magazin-Artikel" wird manuell geändert.
+			case "magazineArticle": // Item Type [Eintragsart] "Magazin-Artikel" wird für die Erfassung von Rezensionen verwendet.  Item Type wird vor dem Exportieren manuell im Software geändert.
 			case "newspaperArticle":
 			case "encyclopediaArticle":
 				article = true;
 				break;
 		}
-		//item.type --> 0500 Bibliographische Gattung und Status K10Plus: 0500 das "o" an der 2. Stelle muss in ein "s" geändert werden
-		//http://swbtools.bsz-bw.de/winibwhelp/Liste_0500.htm
+		//item.type --> 0500 Bibliographische Gattung und Status
 		switch (true) {
 			case physicalForm === "A":
 				addLine(currentItemId, '\\n0500', physicalForm+"s"+cataloguingStatus);
@@ -398,7 +387,6 @@ function performExport() {
         }
 
         //item.type --> 0503 Datenträgertyp
-
         switch (physicalForm) {
             case "A":
                 addLine(currentItemId, "\\n0503", "Band$bnc");
@@ -409,29 +397,16 @@ function performExport() {
             default:
                 addLine(currentItemId, "\\n0503", "Online-Ressource$bcr");
         }
-		
+		//0575 Code für Sammlungen
 		if (collection_code != "") {
 			addLine(currentItemId, "\\n0575", collection_code);
 		}
-        //item.date --> 1100
+
+        //item.date --> 1100 Erscheinungsdatum/Entstehungsdatum
         var date = Zotero.Utilities.strToDate(item.date);
         if (date.year !== undefined) {
             addLine(currentItemId, "\\n1100", date.year.toString());
         }
-
-        //1130 Datenträger K10Plus:1130 alle Codes entfallen, das Feld wird folglich nicht mehr benötigt
-        //http://swbtools.bsz-bw.de/winibwhelp/Liste_1130.htm
-
-        /*switch (physicalForm) {
-            case "A":
-                addLine(currentItemId, "1130", "druck");
-                break;
-            case "O":
-                addLine(currentItemId, "1130", "cofz");
-                break;
-            default:
-                addLine(currentItemId, "1130", "");
-        }*/
 
         //1131 Art des Inhalts
         for (i=0; i<item.tags.length; i++) {
@@ -440,16 +415,6 @@ function performExport() {
 			}
 		}
 
-        // 1140 Veröffentlichungsart und Inhalt http://swbtools.bsz-bw.de/winibwhelp/Liste_1140.htm K10plus:1140 "uwre" entfällt. Das Feld wird folglich auch nicht mehr benötigt. Es sei denn es handelt sich um eines der folgenden Dokumente: http://swbtools.bsz-bw.de/cgi-bin/k10plushelp.pl?cmd=kat&val=1140&kattype=Standard
-        /*if (item.itemType == "magazineArticle") {
-            addLine(currentItemId, "1140", "uwre");
-        }*/
-
-				// 1140 text nur bei Online-Aufsätzen (Satztyp O), aber fakultativ
-		/*if (physicalForm === "O") {
-			addLine(currentItemId, "1140", "text");
-		}*/
-		
         //item.language --> 1500 Sprachcodes
 		if (item.itemType = "journalArticle") {
             if (language_to_language_code.get(item.language)) {
@@ -470,8 +435,8 @@ function performExport() {
             addLine(currentItemId, "\\n2000", item.ISBN);
         }
 
-        //Autoren --> 3000, 3010
-        //Titel, erster Autor --> 4000
+        //creators --> 3000, 3010
+        //item.title --> 4000
         var titleStatement = "";
         if (item.shortTitle == "journalArticle") {
             titleStatement += item.shortTitle;
@@ -550,34 +515,33 @@ function performExport() {
                     var lookupUrl = "https://swb.bsz-bw.de/DB=2.104/SET=4/TTL=1/CMD?SGE=&ACT=SRCHM&MATCFILTER=Y&MATCSET=Y&NOSCAN=Y&PARSE_MNEMONICS=N&PARSE_OPWORDS=N&PARSE_OLDSETS=N&IMPLAND=Y&NOABS=Y&ACT0=SRCHA&SHRTST=50&IKT0=1&TRM0=" + authorName + "&ACT1=*&IKT1=2057&TRM1=*&ACT2=*&IKT2=8991&TRM2=*&ACT3=-&IKT3=8991&TRM3=1%5B0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%5D%5B0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9%5D%5B0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9%5D&SRT=RLV"
 					}
 					else var lookupUrl = "https://swb.bsz-bw.de/DB=2.104/SET=70/TTL=1/CMD?SGE=&ACT=SRCHM&MATCFILTER=Y&MATCSET=Y&NOSCAN=Y&PARSE_MNEMONICS=N&PARSE_OPWORDS=N&PARSE_OLDSETS=N&IMPLAND=Y&NOABS=Y&ACT0=SRCHA&SHRTST=50&IKT0=3040&TRM0=" + authorName + "&ACT1=*&IKT1=2057&TRM1=*&ACT2=*&IKT2=8991&TRM2=(theolog*|neutestament*|alttestament*|kirchenhist*)&ACT3=-&IKT3=8991&TRM3=1[0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8][0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9][0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9]"
-                    /*
-                    lookupUrl kann je nach Anforderung noch spezifiziert werden.
-					Beispiel mit "Zenger, Erich"
-					https://swb.bsz-bw.de/DB=2.104/SET=70/TTL=1/CMD?SGE=&ACT=SRCHM&MATCFILTER=Y&MATCSET=Y&NOSCAN=Y&PARSE_MNEMONICS=N&PARSE_OPWORDS=N&PARSE_OLDSETS=N&IMPLAND=Y&NOABS=Y&ACT0=SRCHA&SHRTST=50&IKT0=3040&TRM0=zenger, erich&ACT1=*&IKT1=2057&TRM1=*&ACT2=*&IKT2=8991&TRM2=(theolog*|neutestament*|alttestament*|kirchenhist*)&ACT3=-&IKT3=8991&TRM3=1[0%2C1%2C2%2C3%2C4%2C5%2C6%2C7][0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9][0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9]"
-					
-					Suchaktion im Katalog sieht wie folgt aus:
-					
-                    suchen [und] (Person(Phrase: Nachname, Vorname) [PER]) zenger, erich
-					eingrenzen (Systematiknummer der SWD [SN]) *
-					eingrenzen (Relationierter Normsatz in der GND [RL]) (theolog*|neutestament*|alttestament*|kirchenhist*)
-					ausgenommen (Relationierter Normsatz in der GND [RL]) 1[0,1,2,3,4,5,6,7][0,1,2,3,4,5,6,7,8,9][0,1,2,3,4,5,6,7,8,9]
-
-                    Aufbau des Lookup-URL:
-					"IKT0=3040" Erster Suchaspekt mit Indikatorwert "1" (=Phrasensuche mit Nachname, Vorname)
-					"TRM0=" Nach "=" kommt dann der Suchstring.
-					...
-					
-					IKT0=3040 TRM0= für Persönlicher Name in Picafeld 100
-                    IKT1=2057 TRM1=3.* für GND-Systematik
-                    IKT2=8963 TRM2=theolog*    für Berufsbezeichnung 550
-                    IKT3=8991 TRM3=1[1,2,3,4,5,6,7,8][0,1,2,3,4,5,6,7,8,9][0,1,2,3,4,5,6,7,8,9] für Geburts- und Sterbedatum (Bereich)
-
-                    ###OPERATOREN "ACT" vor "IKT"###
-                    UND-Verknüpfung "&" | ODER-Verknüpfung "%2B&" | Nicht "-&"
-
-                    ###TYP IKT=Indikatoren|Zweite Spalte Schlüssel(IKT)###
-                    Liste der Indikatoren und Routine http://swbtools.bsz-bw.de/cgi-bin/help.pl?cmd=idx_list_typ&regelwerk=RDA&verbund=SWB
-                    */
+					/* lookupUrl kann je nach Anforderung noch spezifiziert werden.
+					* Beispiel mit "Zenger, Erich"
+					* https://swb.bsz-bw.de/DB=2.104/SET=70/TTL=1/CMD?SGE=&ACT=SRCHM&MATCFILTER=Y&MATCSET=Y&NOSCAN=Y&PARSE_MNEMONICS=N&PARSE_OPWORDS=N&PARSE_OLDSETS=N&IMPLAND=Y&NOABS=Y&ACT0=SRCHA&SHRTST=50&IKT0=3040&TRM0=zenger, erich&ACT1=*&IKT1=2057&TRM1=*&ACT2=*&IKT2=8991&TRM2=(theolog*|neutestament*|alttestament*|kirchenhist*)&ACT3=-&IKT3=8991&TRM3=1[0%2C1%2C2%2C3%2C4%2C5%2C6%2C7][0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9][0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9]"
+					* 
+					* Suchaktion im Katalog sieht wie folgt aus:
+					* 
+					* suchen [und] (Person(Phrase: Nachname, Vorname) [PER]) zenger, erich
+					* eingrenzen (Systematiknummer der SWD [SN])
+					* eingrenzen (Relationierter Normsatz in der GND [RL]) (theolog*|neutestament*|alttestament*|kirchenhist*)
+					* ausgenommen (Relationierter Normsatz in der GND [RL]) 1[0,1,2,3,4,5,6,7][0,1,2,3,4,5,6,7,8,9][0,1,2,3,4,5,6,7,8,9]
+					* 
+					* Aufbau des Lookup-URL:
+					* "IKT0=3040" Erster Suchaspekt mit Indikatorwert "1" (=Phrasensuche mit Nachname, Vorname)
+					* "TRM0=" Nach "=" kommt dann der Suchstring.
+					* ...
+					* 
+					* IKT0=3040 TRM0= für Persönlicher Name in Picafeld 100
+					* IKT1=2057 TRM1=3.* für GND-Systematik
+					* IKT2=8963 TRM2=theolog*    für Berufsbezeichnung 550
+					* IKT3=8991 TRM3=1[1,2,3,4,5,6,7,8][0,1,2,3,4,5,6,7,8,9][0,1,2,3,4,5,6,7,8,9] für Geburts- und Sterbedatum (Bereich)
+					* 
+					* ###OPERATOREN "ACT" vor "IKT"###
+					* UND-Verknüpfung "&" | ODER-Verknüpfung "%2B&" | Nicht "-&"
+					* 
+					* ###TYP IKT=Indikatoren|Zweite Spalte Schlüssel(IKT)###
+					* Liste der Indikatoren und Routine http://swbtools.bsz-bw.de/cgi-bin/help.pl?cmd=idx_list_typ&regelwerk=RDA&verbund=SWB
+					*/
 
                     // threadParams = globale Variablen die sich evtl ändern
                     // während die async-Funktion processDocumentsCustom ausgeführt wird
@@ -593,11 +557,11 @@ function performExport() {
                         // processing callback function
                         function(doc, url, threadParams){
                             var ppn = Zotero.Utilities.xpathText(doc, '//div[a[img]]');
-							if (ppn && SsgField != "0" && institution_retrieve_sign != "krzo") {
+							if (ppn && ssgField != "0" && institution_retrieve_sign != "krzo") {
                                 var authorValue = "!" + ppn.match(/^\d+X?/) + "!" + "$BVerfasserIn$4aut" + "\\n8910 $aixzom$bAutor in der Zoterovorlage ["  + threadParams["authorName"] + "] maschinell zugeordnet\\n";
                                 addLine(threadParams["currentItemId"], threadParams["code"] + ' ##' + printIndex + '##', authorValue);
                             }
-							else if (ppn && SsgField != "0") {
+							else if (ppn && ssgField != "0") {
                                 var authorValue = "!" + ppn.match(/^\d+X?/) + "!" + "$BVerfasserIn$4aut" + "\\n8910 $akrzom$bAutor in der Zoterovorlage ["  + threadParams["authorName"] + "] maschinell zugeordnet\\n";
                                 addLine(threadParams["currentItemId"], threadParams["code"] + ' ##' + printIndex + '##', authorValue);
                             }
@@ -626,11 +590,10 @@ function performExport() {
                     );
                 }
             }
-
-            //TODO: editors, other contributors...
         }
 
         addLine(currentItemId, "\\n4000", ZU.unescapeHTML(titleStatement));
+		
 		//Paralleltitel --> 4002
 		if (item.archiveLocation && item.ISSN == '2660-7743') {
 			switch (true) {
@@ -669,7 +632,7 @@ function performExport() {
             addLine(currentItemId, "\\n4020", item.edition);
         }
 
-        //Erscheinungsvermerk --> 4030
+        //Veröffentlichungsangabe --> 4030
         if (!article) {
             var publicationStatement = "";
             if (item.place) { publicationStatement += item.place; }
@@ -678,7 +641,7 @@ function performExport() {
         }
 
 
-        //4070 $v Bandzählung $j Jahr $h Heftnummer $p Seitenzahl K10Plus:4070 aus $h wird $a
+        //item.volume, item.date, item.issue, item.pages --> 4070 Differenzierende Angaben zur Quelle
         if (item.itemType == "journalArticle" || item.itemType == "magazineArticle") {
             var volumeyearissuepage = "";
 			if (item.volume) { volumeyearissuepage += "$v" + item.volume.replace("Tome ", "").replace(/\s\(Number\s\d+-?\d+\)/, "").replace(/^\d.\w..\s\w\w.\s/, ""); }
@@ -696,9 +659,8 @@ function performExport() {
             addLine(currentItemId, "\\n4070", volumeyearissuepage);
         }
 
-        //URL --> 4085 nur bei Dokumenttyp "magazineArticle" für Rezension im Feld 0500 K10Plus:aus 4085 wird 4950 
         if (item.url && item.itemType == "magazineArticle") {
-            addLine(currentItemId, "\\n4950", item.url + "$xH"); //K10Plus:wird die URL aus dem DOI, einem handle oder einem urn gebildet, sollte es $xR heißen und nicht $xH
+            addLine(currentItemId, "\\n4950", item.url + "$xH");
         }
 		
 		//Open Access / Free Access als LF --> 4950
@@ -709,104 +671,117 @@ function performExport() {
 				}
 			}
 		}
-		//URL --> 4085 nur bei Satztyp "O.." im Feld 0500 K10Plus:aus 4085 wird 4950
+
+		//URL --> 4950 URL zum Volltext
 		switch (true) {
-			case item.url && item.url.match(/doi\.org\/10\./) && physicalForm === "O" && licenceField === "l": 
-				addLine(currentItemId, "\\n4950", item.url + "$xR$3Volltext$4LF$534");//K10Plus:0500 das "l" an der vierten Stelle entfällt, statt dessen wird $4LF in 4950 gebildet
+			case item.url && item.url.match(/doi\.org\/10\./) && physicalForm === "O" && licenceField === "l" && item.itemType === "journalArticle": 
+				addLine(currentItemId, "\\n4950", item.url + "$xR$3Volltext$4LF$534");
 				break;
-			case item.url && !item.url.match(/doi\.org\/10\./) && physicalForm === "O" && licenceField === "l": 
-				addLine(currentItemId, "\\n4950", item.url + "$xH$3Volltext$4LF$534");//K10Plus:0500 das "l" an der vierten Stelle entfällt, statt dessen wird $4LF in 4950 gebildet
+			case item.url && !item.url.match(/doi\.org\/10\./) && physicalForm === "O" && licenceField === "l" && item.itemType === "journalArticle": 
+				addLine(currentItemId, "\\n4950", item.url + "$xH$3Volltext$4LF$534");
 				break;
-			case item.url && item.url.match(/doi\.org\/10\./) && physicalForm === "O" && licenceField === "kw":
+			case item.url && item.url.match(/doi\.org\/10\./) && physicalForm === "O" && licenceField === "kw" && item.itemType === "journalArticle":
 				addLine(currentItemId, "\\n4950", item.url + "$xR$3Volltext$4KW$534");
 				break;
-			case item.url && !item.url.match(/doi\.org\/10\./) && physicalForm === "O" && licenceField === "kw":
+			case item.url && !item.url.match(/doi\.org\/10\./) && physicalForm === "O" && licenceField === "kw" && item.itemType === "journalArticle":
 				addLine(currentItemId, "\\n4950", item.url + "$xH$3Volltext$4KW$534");
 				break;
-			case item.url && item.url.match(/doi\.org\/10\./) && physicalForm === "O":
+			case item.url && item.url.match(/doi\.org\/10\./) && physicalForm === "O" && item.itemType === "journalArticle":
 				addLine(currentItemId, "\\n4950", item.url + "$xR$3Volltext$4ZZ$534");
 				break;
-			case item.url && !item.url.match(/doi\.org\/10\./) && physicalForm === "O":
+			case item.url && !item.url.match(/doi\.org\/10\./) && physicalForm === "O" && item.itemType === "journalArticle":
 				addLine(currentItemId, "\\n4950", item.url + "$xH$3Volltext$4ZZ$534");
 				break;
-			case item.url && item.itemType == "magazineArticle":
+			case item.url && item.url.match(/doi\.org\/10\./) && licenceField === "l" && item.itemType === "magazineArticle":
+				addLine(currentItemId, "\\n4950", item.url + "$xR$3Volltext$4KW$534");
+				break;
+			case item.url && !item.url.match(/doi\.org\/10\./) && licenceField === "l" && item.itemType === "magazineArticle":
+				addLine(currentItemId, "\\n4950", item.url + "$xH$3Volltext$4KW$534");
+				break;
+			case item.url && item.url.match(/doi\.org\/10\./) && item.itemType === "magazineArticle":
+				addLine(currentItemId, "\\n4950", item.url + "$xR");
+				break;
+			case item.url && !item.url.match(/doi\.org\/10\./) && item.itemType === "magazineArticle":
 				addLine(currentItemId, "\\n4950", item.url + "$xH");
 				break;
 			}
 		
-		    //DOI --> 4950 DOI in aufgelöster Form mit Lizenzinfo "LF"
-		    if (item.DOI && item.url && !item.url.match(/https?:\/\/doi\.org/) && licenceField === "l") {
-			addLine(currentItemId, "\\n4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4LF$534");
-		    }
-		    //DOI --> 4950 DOI in aufgelöster Form mit Lizenzinfo "ZZ"
-		    if (item.DOI && item.url && !item.url.match(/https?:\/\/doi\.org/) && !licenceField) {
-			addLine(currentItemId, "\\n4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4ZZ$534");
-		    }
-			if (item.DOI && !item.url) {
-				if (licenceField === "l") {
-					addLine(currentItemId, "\\n4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4LF$534");
-				} else if (!licenceField) {
-					addLine(currentItemId, "\\n4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4ZZ$534");
-				}
+		//DOI --> 4950 DOI in aufgelöster Form mit Lizenzinfo "LF"
+		if (item.DOI && item.url && !item.url.match(/https?:\/\/doi\.org/) && licenceField === "l") {
+		addLine(currentItemId, "\\n4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4LF$534");
+		}
+		
+		//DOI --> 4950 DOI in aufgelöster Form mit Lizenzinfo "ZZ"
+		if (item.DOI && item.url && !item.url.match(/https?:\/\/doi\.org/) && !licenceField) {
+		addLine(currentItemId, "\\n4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4ZZ$534");
+		}
+		//DOI --> 4950 DOI in aufgelöster Form mit Lizenzinfo "LF"
+		if (item.DOI && !item.url) {
+			if (licenceField === "l") {
+				addLine(currentItemId, "\\n4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4LF$534");
+			} else if (!licenceField) {
+				addLine(currentItemId, "\\n4950", "https://doi.org/" + item.DOI + "$xR$3Volltext$4ZZ$534");
 			}
-			//item.DOI --> 2051 bei "Oou" bzw. 2053 bei "Aou"
-			if (item.DOI) {
-				if (physicalForm === "O" || item.DOI) {
-					addLine(currentItemId, "\\n2051", item.DOI.replace('https://doi.org/', ''));
-				} else if (physicalForm === "A") {
-					addLine(currentItemId, "\\n2053", item.DOI.replace('https://doi.org/', ''));
-				}
+		}
+
+		//item.DOI --> 2051 bei "Oou" bzw. 2053 bei "Aou"
+		if (item.DOI) {
+			if (physicalForm === "O" || item.DOI) {
+				addLine(currentItemId, "\\n2051", item.DOI.replace('https://doi.org/', ''));
+			} else if (physicalForm === "A") {
+				addLine(currentItemId, "\\n2053", item.DOI.replace('https://doi.org/', ''));
 			}
+		}
 			
-			//item.notes as second doi --> 2051
-			if (item.notes) {
-				for (let i in item.notes) {
-					if (item.notes[i].note.includes('doi:')) {
-						addLine(currentItemId, "\\n2051", ZU.unescapeHTML(item.notes[i].note.replace('doi:https://doi.org/', '')));
-						if (licenceField === "l") {
-						addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/doi:/i, '') + "$xR$3Volltext$4LF$534"));
-						}
-						else {
-							addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/doi:/i, '') + "$xR$3Volltext$4ZZ$534"));
-						}
+		//item.notes as second doi --> 2051
+		if (item.notes) {
+			for (let i in item.notes) {
+				if (item.notes[i].note.includes('doi:')) {
+					addLine(currentItemId, "\\n2051", ZU.unescapeHTML(item.notes[i].note.replace('doi:https://doi.org/', '')));
+					if (licenceField === "l") {
+					addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/doi:/i, '') + "$xR$3Volltext$4LF$534"));
+					}
+					else {
+						addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/doi:/i, '') + "$xR$3Volltext$4ZZ$534"));
 					}
 				}
 			}
+		}
 			
-			//item.notes as handle --> 2052
-			if (item.notes) {
-				for (let i in item.notes) {
-					if (item.notes[i].note.includes('handle:')) {
-						addLine(currentItemId, "\\n2052", ZU.unescapeHTML(item.notes[i].note.replace(/handle:https?:\/\/hdl\.handle\.net\//i, '')));
-						if (licenceField === "l") {
-						addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/handle:/i, '') + "$xR$3Volltext$4LF$534"));
-						}
-						else {
-							addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/handle:/i, '') + "$xR$3Volltext$4ZZ$534"));
-						}
+		//item.notes as handle --> 2052
+		if (item.notes) {
+			for (let i in item.notes) {
+				if (item.notes[i].note.includes('handle:')) {
+					addLine(currentItemId, "\\n2052", ZU.unescapeHTML(item.notes[i].note.replace(/handle:https?:\/\/hdl\.handle\.net\//i, '')));
+					if (licenceField === "l") {
+					addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/handle:/i, '') + "$xR$3Volltext$4LF$534"));
 					}
-					if (item.notes[i].note.indexOf('urn:') == 0) {
-						addLine(currentItemId, "\\n2050", ZU.unescapeHTML(item.notes[i].note));
-						if (licenceField === "l") {
-						addLine(currentItemId, "\\n4950", 'http://nbn-resolving.de/' + ZU.unescapeHTML(item.notes[i].note + "$xR$3Volltext$4LF$534"));
-						}
-						else {
-							addLine(currentItemId, "\\n4950", 'http://nbn-resolving.de/' + ZU.unescapeHTML(item.notes[i].note + "$xR$3Volltext$4ZZ$534"));
-						}
+					else {
+						addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/handle:/i, '') + "$xR$3Volltext$4ZZ$534"));
 					}
-					if (item.notes[i].note.indexOf('URI:') == 0) {
-						if (licenceField === "l") {
-						addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/URI:/, '') + "$xR$3Volltext$4LF$534"));
-						}
-						else {
-							addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/URI:/i, '') + "$xR$3Volltext$4ZZ$534"));
-						}
+				}
+				if (item.notes[i].note.indexOf('urn:') == 0) {
+					addLine(currentItemId, "\\n2050", ZU.unescapeHTML(item.notes[i].note));
+					if (licenceField === "l") {
+					addLine(currentItemId, "\\n4950", 'http://nbn-resolving.de/' + ZU.unescapeHTML(item.notes[i].note + "$xR$3Volltext$4LF$534"));
+					}
+					else {
+						addLine(currentItemId, "\\n4950", 'http://nbn-resolving.de/' + ZU.unescapeHTML(item.notes[i].note + "$xR$3Volltext$4ZZ$534"));
+					}
+				}
+				if (item.notes[i].note.indexOf('URI:') == 0) {
+					if (licenceField === "l") {
+					addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/URI:/, '') + "$xR$3Volltext$4LF$534"));
+					}
+					else {
+						addLine(currentItemId, "\\n4950", ZU.unescapeHTML(item.notes[i].note.replace(/URI:/i, '') + "$xR$3Volltext$4ZZ$534"));
 					}
 				}
 			}
+		}
 
 			
-        //Reihe --> 4110
+        //Reihe --> 4110 Gesamttitel der Reproduktion
         if (!article) {
             var seriesStatement = "";
             if (item.series) {
@@ -818,18 +793,20 @@ function performExport() {
             addLine(currentItemId, "\\n4110", seriesStatement);
         }
 
-        //Inhaltliche Zusammenfassung --> 4207
+        //Inhaltliche Zusammenfassung --> 4207 Inhaltliche Zusammenfassung
         if (item.abstractNote) {
 			item.abstractNote = ZU.unescapeHTML(item.abstractNote);
 			addLine(currentItemId, "\\n4207", item.abstractNote.replace("", "").replace(/–/g, '-').replace(/&#160;/g, "").replace('No abstract available.', '').replace('not available', '').replace(/^Abstract\s?:?/, '').replace(/Abstract  :/, '').replace(/^Zusammenfassung/, '').replace(/^Summary/, ''));
         }
+		
 		//Inhaltliche Zusammenfassung, falls mehr als ein Abstract --> 4207
 		if (item.notes) {
 			for (let i in item.notes) {
 				if (item.notes[i].note.includes('abs')) addLine(currentItemId, "\\n4207", item.notes[i].note.replace("", "").replace(/–/g, '-').replace(/&#160;/g, "").replace('No abstract available.', '').replace('not available', '').replace(/^Abstract\s?:?/, '').replace(/Abstract  :/, '').replace(/^Zusammenfassung/, '').replace(/^Summary/, '').replace('abs:', ''));
 			}
 		}
-        //item.publicationTitle --> 4241 Beziehungen zur größeren Einheit
+        
+		//item.publicationTitle --> 4241 Beziehungen zur größeren Einheit
         if (item.itemType == "journalArticle" || item.itemType == "magazineArticle") {
             if (superiorPPN.length != 0) {
                 addLine(currentItemId, "\\n4241", "Enthalten in" + superiorPPN);
@@ -838,24 +815,21 @@ function performExport() {
             }
 			else addLine(currentItemId, "\\n4241", undefined);
 			
-
             //4261 Themenbeziehungen (Beziehung zu der Veröffentlichung, die beschrieben wird)|case:magazineArticle
             if (item.itemType == "magazineArticle") {
                 addLine(currentItemId, "\\n4261", "Rezension von" + item.publicationTitle); // zwischen den Ausrufezeichen noch die PPN des rezensierten Werkes manuell einfügen.
             }
 
-			//SSG bzw. FID-Nummer --> 5056 "0" = Religionwissenschaft | "1" = Theologie | "0; 1" = RW & Theol.
-
-            if (SsgField === "1" || SsgField === "0" || SsgField === "0$a1" || SsgField === "2,1") { 
-                addLine(currentItemId, "\\n5056", SsgField);
+			//SSG bzw. FID-Nummer --> 5056 "0" = SSG/FID Religionwissenschaft | "1" = SSG/FID Theologie | "0$a1" = RW & Theol. | "2,1" = SSG/FID Kriminologie
+            if (ssgField === "1" || ssgField === "0" || ssgField === "0$a1" || ssgField === "2,1") { 
+                addLine(currentItemId, "\\n5056", ssgField);
             } 
-			else if (SsgField == "NABZ") {
+			else if (ssgField == "NABZ") {
 				addLine(currentItemId, "\\n5056", '');
 			}
 			else {
                 addLine(currentItemId, "\\n5056", defaultSsgNummer);
             }
-			
             
 			//ORCID und Autorennamen --> 8910
 			if (item.notes) {
@@ -866,31 +840,31 @@ function performExport() {
 					}
 				}
 			}
+			//Exemplardatensatz | Signatur | Vierstellige, recherchierbare Abrufzeichen --> 7100 und 8012 | Anmerkung: IxTheo, Relbib, KrimDok bestandsunabhängig daher "$J" Fernleihecode "n" = keine Fernleihe
 			if (institution_retrieve_sign == "") {
-				if (SsgField == "NABZ") {
+				if (ssgField == "NABZ") {
 					addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 ixzs$aixzo$aNABZ', ""); 
 				}
 				else addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 ixzs$aixzo', "");
 			}
 			else if (institution_retrieve_sign == "inzo") {
-				if (SsgField == "NABZ") {
+				if (ssgField == "NABZ") {
 					addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 inzs$ainzo$aNABZ', ""); 
 				}
 				else addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 inzs$ainzo', "");
 			}
 			else if (institution_retrieve_sign == "krzo") {
-				if (SsgField == "NABZ") {
+				if (ssgField == "NABZ") {
 					addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 krzo$aNABZ', ""); 
 				}
 				else addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 krzo', "");
 			}
-			//K10plus:das "j" in 7100 $jn wird jetzt groß geschrieben, also $Jn / aus 8002,  dem Feld für die lokalen Abrufzeichen, wird 8012/ 8012 mehrere Abrufzeichen werden durch $a getrennt, nicht wie bisher durch Semikolon. Also: 8012 ixzs$aixzo
-			//Schlagwörter aus einem Thesaurus (Fremddaten) --> 5520 (oder alternativ siehe Mapping)
-            
+
+			//Schlagwörter aus einem Thesaurus und freie Schlagwörter --> 5520
             for (i=0; i<item.tags.length; i++) {
                     addLine(currentItemId, "\\n5520", "|s|" + ZU.unescapeHTML(item.tags[i].tag.replace(/\s?--\s?/g, '; ')));
             }
-			//notes > IxTheo-Notation K10plus: 6700 wird hochgezählt und nicht wiederholt, inkrementell ab z.B. 6800, 6801, 6802 etc.
+			//item.notes --> IxTheo-Notation K10plus: 6700 bzw. 670x kann entweder wiederholt oder hochgezählt werden.
 			if (item.notes) {
 				for (i in item.notes) {
 					var note = ZU.unescapeHTML(item.notes[i].note)
