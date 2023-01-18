@@ -414,7 +414,26 @@ function performExport() {
 				addLine(currentItemId, "\\n1131", "!106186019!");
 			}
 		}
+<<<<<<< HEAD
 
+=======
+		var localURL = "";		
+		if (item.url.match(/redi-bw.de/)) {
+			localURL = "\\n7133 " + item.url + "$xH$3Volltext$4ZZ$534";
+			item.url = null;		
+		}
+		
+        // 1140 Veröffentlichungsart und Inhalt http://swbtools.bsz-bw.de/winibwhelp/Liste_1140.htm K10plus:1140 "uwre" entfällt. Das Feld wird folglich auch nicht mehr benötigt. Es sei denn es handelt sich um eines der folgenden Dokumente: http://swbtools.bsz-bw.de/cgi-bin/k10plushelp.pl?cmd=kat&val=1140&kattype=Standard
+        /*if (item.itemType == "magazineArticle") {
+            addLine(currentItemId, "1140", "uwre");
+        }*/
+
+				// 1140 text nur bei Online-Aufsätzen (Satztyp O), aber fakultativ
+		/*if (physicalForm === "O") {
+			addLine(currentItemId, "1140", "text");
+		}*/
+		
+>>>>>>> master
         //item.language --> 1500 Sprachcodes
 		if (item.itemType = "journalArticle") {
             if (language_to_language_code.get(item.language)) {
@@ -650,6 +669,7 @@ function performExport() {
 			if (item.issue && item.ISSN === "2699-5433") { volumeyearissuepage += "$m" + item.issue.replace("-", "/").replace(/^0/, ""); }
 			for (let i in item.notes) {
 				if (item.notes[i].note.includes('artikelID:')) { volumeyearissuepage += "$i" + item.notes[i].note.replace(/artikelID:/i, '') };
+				if (item.notes[i].note.includes('SonderHeft:')) { volumeyearissuepage += "$n" + item.notes[i].note.replace(/SonderHeft:/i, '') };
 			}
 			if (item.pages) { volumeyearissuepage += "$p" + item.pages; }
 			for (let i in item.notes) {
@@ -658,10 +678,13 @@ function performExport() {
 			if (item.ISSN === "2077-1444" && item.callNumber) {volumeyearissuepage += "$i" + item.callNumber;}
             addLine(currentItemId, "\\n4070", volumeyearissuepage);
         }
+<<<<<<< HEAD
 
         if (item.url && item.itemType == "magazineArticle") {
             addLine(currentItemId, "\\n4950", item.url + "$xH");
         }
+=======
+>>>>>>> master
 		
 		//Open Access / Free Access als LF --> 4950
 		if (item.notes) {
@@ -842,22 +865,37 @@ function performExport() {
 			}
 			//Exemplardatensatz | Signatur | Vierstellige, recherchierbare Abrufzeichen --> 7100 und 8012 | Anmerkung: IxTheo, Relbib, KrimDok bestandsunabhängig daher "$J" Fernleihecode "n" = keine Fernleihe
 			if (institution_retrieve_sign == "") {
+<<<<<<< HEAD
 				if (ssgField == "NABZ") {
 					addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 ixzs$aixzo$aNABZ', ""); 
+=======
+				if (SsgField == "NABZ") {
+					addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 ixzs$aixzo$aNABZ' + localURL, ""); 
+>>>>>>> master
 				}
-				else addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 ixzs$aixzo', "");
+				else addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 ixzs$aixzo' + localURL, "");
 			}
 			else if (institution_retrieve_sign == "inzo") {
+<<<<<<< HEAD
 				if (ssgField == "NABZ") {
 					addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 inzs$ainzo$aNABZ', ""); 
+=======
+				if (SsgField == "NABZ") {
+					addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 inzs$ainzo$aNABZ' + localURL, ""); 
+>>>>>>> master
 				}
-				else addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 inzs$ainzo', "");
+				else addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 inzs$ainzo' + localURL, "");
 			}
 			else if (institution_retrieve_sign == "krzo") {
+<<<<<<< HEAD
 				if (ssgField == "NABZ") {
 					addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 krzo$aNABZ', ""); 
+=======
+				if (SsgField == "NABZ") {
+					addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 krzo$aNABZ' + localURL, ""); 
+>>>>>>> master
 				}
-				else addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 krzo', "");
+				else addLine(currentItemId, '\\nE* l01\\n7100$Jn\\n8012 krzo' + localURL, "");
 			}
 
 			//Schlagwörter aus einem Thesaurus und freie Schlagwörter --> 5520

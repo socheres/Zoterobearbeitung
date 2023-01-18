@@ -9,7 +9,11 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
+<<<<<<< HEAD
 	"lastUpdated": "2021-03-29 13:50:14"
+=======
+	"lastUpdated": "2022-11-30 13:56:18"
+>>>>>>> master
 }
 
 /*
@@ -97,6 +101,51 @@ function getValue(nodes) {
 	return value;
 }
 
+<<<<<<< HEAD
+=======
+function parseAbstract(doc, item) {
+	// the abstract text can be interspersed by inline <i> tags that break
+	// the flow of text. So, we need to iterate through the text nodes and
+	// <i> nodes in sequence
+	let textParts = ZU.xpath(doc, '//b[contains(text(), "Abstract :")]/following-sibling::text()');
+	let italicsParts = ZU.xpath(doc, '//b[contains(text(), "Abstract :")]/following-sibling::i');
+	let usedItalicsParts = 0;
+	if (textParts && textParts.length > 0) {
+		item.abstractNote = "";
+		let fullAbstract = "";
+		let i = 0, j = 0;
+		while (i < textParts.length) {
+			let text = textParts[i].textContent.replace(/\n|\s\s+/g, '');
+			if (text.length == 0) {
+				fullAbstract += '\\n4207 ';
+			}
+			if (text && text.length > 0) {
+				fullAbstract += text;
+				if (j < italicsParts.length) {
+					let text = italicsParts[j].textContent;
+					if (textParts[i+1].textContent.replace(/\n|\s\s+/g, '').length > 0) {
+						fullAbstract += text;
+						++j;
+						usedItalicsParts += 1;
+						}
+					}
+			}
+			++i;
+		}
+		//split abstracts
+		fullAbstract = fullAbstract.replace(/(?:\\n4207 )+$|^(?:\\n4207 )+/g, '');
+
+		if (usedItalicsParts < italicsParts.length) {
+			if (usedItalicsParts == italicsParts.length -1) {
+				fullAbstract = italicsParts[0].textContent + fullAbstract;
+			}
+		}
+		item.abstractNote = fullAbstract;
+		
+	}
+}
+
+>>>>>>> master
 
 function scrape(doc, url) {
 	var item = new Z.Item('journalArticle');
@@ -153,12 +202,17 @@ function scrape(doc, url) {
 		});
 	}
 
+<<<<<<< HEAD
 	item.attachments.push({
 		url: url,
 		title: "Snapshot",
 		mimeType: "text/html"
 	});
 }/** BEGIN TEST CASES **/
+=======
+
+/** BEGIN TEST CASES **/
+>>>>>>> master
 var testCases = [
 	{
 		"type": "web",
@@ -324,7 +378,12 @@ var testCases = [
 				],
 				"date": "March 1994",
 				"DOI": "10.2143/EP.1.1.630100",
+<<<<<<< HEAD
 				"abstractNote": "Today, applied ethics confronts many problems: technological and biomedical innovations, crisis of the welfare state, rising unemployment, migration and xenophobia. These and the changes accompanying them are, in themselves, important objects of study.",
+=======
+				"ISSN": "1783-1431",
+				"abstractNote": "Today, applied ethics confronts many problems: technological and biomedical innovations, crisis of the welfare state, rising unemployment, migration and xenophobia. These and the changes accompanying them are, in themselves, important objects of study. \\n4207 An investigation on the level of the differentiated disciplines of practical ethics is insufficient. In as far as practical ethics also serves to disclose reality, it shows that modern problems can only be understood in the light of the general cultural crisis of which they are, at the very least, symptoms. In the first part of this article, we will try to clarify this byanalyzing the crisis in the ethos of modern secularized society. The second part will try to show that Christian ethics can offer a meaningful answer to this cultural crisis, and how it can do so.",
+>>>>>>> master
 				"issue": "1",
 				"libraryCatalog": "Peeters",
 				"pages": "3-12",
@@ -577,12 +636,240 @@ var testCases = [
 				"publicationTitle": "Byzantion",
 				"shortTitle": "The Unedited <i>Life</i> of St John Chrysostom by Nicetas David the Paphlagonian",
 				"volume": "87",
+<<<<<<< HEAD
 				"attachments": [
 					{
 						"title": "Snapshot",
 						"mimeType": "text/html"
 					}
 				],
+=======
+				"attachments": [],
+				"tags": [],
+				"notes": [],
+				"seeAlso": []
+			}
+		]
+	},
+	{
+		"type": "web",
+		"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3289311&journal_code=ETS",
+		"items": [
+			{
+				"itemType": "journalArticle",
+				"title": "Eigenverantwortung christlicher Gemeinden in ihrem Gegenüber zur Kirchenleitung:  In memoriam Leo Karrer (1937-2021)",
+				"creators": [
+					{
+						"creatorType": "author",
+						"lastName": "Schmid-Keiser",
+						"firstName": " Stephan"
+					}
+				],
+				"date": "2021",
+				"DOI": "10.2143/ETS.12.1.3289311",
+				"ISSN": "2033-4273",
+				"abstractNote": "Seelsorgende und ihre Gemeinden stehen untereinander und speziell in ihrem Verhältnis zur Kirchenleitung vor großen Herausforderungen. Dies machen 'Impulse zur Eigenverantwortung der Gemeinden' bewusst, welche Hermann Häring zu Ostern 2020 publizierte. Dessen Kernanliegen fokussieren auf eine partizipative Kirchenstruktur, den Bedarf nach 'mehr Augenhöhe', den Ruf nach Autorität der Gemeinde und deren Kraft aus den Charismen vor Ort. In kritischer Reflexion einiger dieser Stichworte greift Stephan Schmid-Keiser die Anliegen Härings auf. Eigene Erfahrungen in der Leitung von Pfarreien bewegen ihn, Derivate aus der Forschungsarbeit von Thomas Wienhardt (2017) zu einer wirkungsvoll(er)en Pastoral zu diskutieren und zu fragen, inwieweit die praktische Theologie hinsichtlich der Stärkung der Eigenverantwortung von Getauften und Gefirmten bisher das Nötige tut. Schließlich plädiert der Beitrag für Weichenstellungen im Kirchenrecht, ohne die kirchliches Leben in gewandelter Gesellschaft vermehrt ins Abseits geriete. Gewidmet ist der Beitrag Leo Karrer († 8. Januar 2021), dem die Stärkung echter Teilhabe des Volkes Gottes am Leben der Glaubensgemeinschaft ein Grundanliegen war.\\n4207 Pastors and their congregations face great challenges among themselves and especially in their relationship with the church leadership. This is made clear in 'Impulses towards Congregations assuming Personal Responsibility' that Hermann Häring published at Easter 2020. Its core concerns focus on a participatory church structure, the need for more eye-to-eye interaction, the call for authority to be given to congregations, and their strength from charisms on the ground. Reflecting critically on some of these key ideas. Stephan Schmid-Keiser takes up Häring’s concerns. His own experiences in leading parishes lead him to discuss some implications from the research of Thomas Wienhardt (2017) on a (more) effective pastoral ministry and to ask to what extent practical theology has so far done what is necessary with regard to strengthening the personal responsibility of the baptised and the confirmed. Finally, the article pleads for changes to church law, without which church life in a changed society would increasingly be side-lined. The article is dedicated to Leo Karrer (died 8 January 2021) for whom the strengthening of genuine participation of God’s people in the life of the faith community was a fundamental concern.\\n4207 Les pasteurs et leurs communautés sont confrontés à de grands défis internes, en particulier dans leurs relations avec les responsables de l’Église. L’ouvrage «Impulse zur Eigenverantwortung der Gemeinden», publié par Hermann Häring à Pâques 2020, le montre clairement. Ses principales préoccupations portent sur une structure ecclésiale participative, sur le besoin d’une interaction «sur pied d’égalité», sur l’appel à l’autorité de la communauté et au pouvoir que lui donnent ses charismes sur le terrain. Dans une réflexion critique sur certains de ces mots-clés, Stephan Schmid-Keiser reprend les préoccupations de Häring. Ses propres expériences de responsable de paroisse l’amènent à en discuter certaines implications, à partir de la recherche de Thomas Wienhardt (2017) sur un ministère pastoral (plus) efficace et à se demander dans quelle mesure la théologie pratique a, jusqu’ici, fait ce qu’il fallait pour renforcer la responsabilité personnelle des baptisés et des confirmés. Enfin, l’article plaide pour des changements dans la loi de l’Église, faute de quoi l’Église vivrait de plus en plus à la marge d’une société qui a changé. L’article est dédié à Leo Karrer (décédé le 8 janvier 2021). Le renforcement d’une réelle participation du peuple de Dieu à la vie de la communauté était pour lui une préoccupation essentielle.",
+				"issue": "1",
+				"libraryCatalog": "ubtue_Peeters",
+				"pages": "131-148",
+				"publicationTitle": "ET-Studies",
+				"shortTitle": "Eigenverantwortung christlicher Gemeinden in ihrem Gegenüber zur Kirchenleitung",
+				"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3289311&journal_code=ETS",
+				"volume": "12",
+				"attachments": [],
+				"tags": [],
+				"notes": [],
+				"seeAlso": []
+			}
+		]
+	},
+	{
+		"type": "web",
+		"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3288828&journal_code=EP",
+		"items": [
+			{
+				"itemType": "journalArticle",
+				"title": "Relational Normative Economics:  An African Approach to Justice",
+				"creators": [
+					{
+						"creatorType": "author",
+						"lastName": "Metz",
+						"firstName": " Thaddeus"
+					}
+				],
+				"date": "2020",
+				"DOI": "10.2143/EP.27.1.3288828",
+				"ISSN": "1783-1431",
+				"abstractNote": "Recent work by comparative philosophers, global ethicists, and cross-cultural value theorists indicates that, unlike most Western thinkers, those in many other parts of the globe, such as indigenous Africa, East Asia, and South America, tend to prize relationality. These relational values include enjoying a sense of togetherness, participating cooperatively, creating something new together, engaging in mutual aid, and being compassionate. Global economic practices and internationally influential theories pertaining to justice, development, and normative economics over the past 50 years have been principally informed by characteristically Western and individualist values such as utility, autonomy, and capability. In this article I consider what economic appropriation, production, distribution, and consumption would look like if they were more influenced by relational values typical of non-Western worldviews, and especially the sub-Saharan ethic of ubuntu.",
+				"issue": "1",
+				"libraryCatalog": "ubtue_Peeters",
+				"pages": "35-68",
+				"publicationTitle": "Ethical Perspectives",
+				"shortTitle": "Relational Normative Economics",
+				"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3288828&journal_code=EP",
+				"volume": "27",
+				"attachments": [],
+				"tags": [],
+				"notes": [],
+				"seeAlso": []
+			}
+		]
+	},
+	{
+		"type": "web",
+		"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3289673",
+		"items": [
+			{
+				"itemType": "journalArticle",
+				"title": "The Spirituality of De imitatione Christi:  A Historian's Reflection on Asceticism and Mysticism in the Devotio moderna",
+				"creators": [
+					{
+						"creatorType": "author",
+						"lastName": "Goudriaan",
+						"firstName": " Koen"
+					}
+				],
+				"date": "2021",
+				"DOI": "10.2143/OGE.91.3.3289673",
+				"abstractNote": "This contribution examines the claim made by Rudolf van Dijk († 2015) a dozen years ago, that the reading of Thomas’s Imitatio Christi in the order of the autograph brings to light the ultimately mystical character of the work. A case could be made, indeed, for interpreting not only the book ‘On Consolation Within’, but even the book ‘On the Sacrament of the Altar’, as mystagogical. Consequently, it hardly seems possible any longer to defend a position which denies the mystical elements in Thomas’s work. The lack of unanimity among students of the Imitatio on the relationship between its ascetical and mystical elements may be imputed to the fact that their definition of mysticism mostly remains implicit. Therefore, this contribution traces the roots of the various assessments of the Imitatio, suggesting that these have to be looked for in theology, particularly in the Roman Catholic theological tradition. With the exception of its Pietist branch, Protestant theologians have read the Imitatio not so much for its mystical character as for its edificatory value. In Catholic circles, a debate has taken place about ‘infused’ versus ‘acquired’ contemplation. With reference to this debate, it was the Jesuit Albert Deblaere who gave a very subtle and pertinent analysis of the spirituality of the Imitatio. In his view, far from being a textbook of asceticism, it focuses on the search for religious experience. Nevertheless, due to his strict definition of mysticism, which only recognizes ‘infused’ grace and excludes the possibility of methodical preparation, Deblaere does not admit the Imitatio to the canon of mystical works. As an alternative to Deblaere’s influential approach, the ideas of the Nijmegen school of spirituality studies have been presented. Here, spiritual ascent is analysed as a journey for which a whole array of tools and means is available — the domain customarily assigned to asceticism — , but during which man is gradually transformed under the direct impact of divine reality. These are also the assumptions underneath the plea for a mystical reading of the Imitatio by Van Dijk, who himself belonged to this Nijmegen school. In discussing the book on the Sacrament of the Altar, some clues are followed to the religious experience of the fifteenth-century contemporaries for whom the Imitatio was written in the first place. The final section investigates the implications of the reflections on the Imitatio for the concept of a ‘mystical culture’, which has been used to characterize fifteenth-century religion. This concept, too, appears to embody a Deblaerian view of mysticism. Instead, this contribution makes out a case for a broader concept of mysticism, enabling scholars to come to a fuller recognition of the role it played in late-medieval religious culture.",
+				"issue": "3/4",
+				"libraryCatalog": "ubtue_Peeters",
+				"pages": "293-326",
+				"publicationTitle": "Ons Geestelijk Erf",
+				"shortTitle": "The Spirituality of De imitatione Christi",
+				"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3289673",
+				"volume": "91",
+				"attachments": [],
+				"tags": [],
+				"notes": [],
+				"seeAlso": []
+			}
+		]
+	},
+	{
+		"type": "web",
+		"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3289313&journal_code=ETS",
+		"items": [
+			{
+				"itemType": "journalArticle",
+				"title": "Corona-Krise:  Eine Herausforderung für die pastorale Arbeit vor Ort",
+				"creators": [
+					{
+						"creatorType": "author",
+						"lastName": "Hüser",
+						"firstName": " Sara-Marie"
+					}
+				],
+				"date": "2021",
+				"DOI": "10.2143/ETS.12.1.3289313",
+				"ISSN": "2033-4273",
+				"issue": "1",
+				"libraryCatalog": "ubtue_Peeters",
+				"pages": "161-169",
+				"publicationTitle": "ET-Studies",
+				"shortTitle": "Corona-Krise",
+				"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3289313&journal_code=ETS",
+				"volume": "12",
+				"attachments": [],
+				"tags": [],
+				"notes": [],
+				"seeAlso": []
+			}
+		]
+	},
+	{
+		"type": "web",
+		"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3289298&journal_code=ETS",
+		"items": [
+			{
+				"itemType": "journalArticle",
+				"title": "Die Corona-Krise als Herausforderung für Theologie und Kirche",
+				"creators": [
+					{
+						"creatorType": "author",
+						"lastName": "Kruip",
+						"firstName": " Gerhard"
+					}
+				],
+				"date": "2021",
+				"DOI": "10.2143/ETS.12.1.3289298",
+				"ISSN": "2033-4273",
+				"issue": "1",
+				"libraryCatalog": "ubtue_Peeters",
+				"pages": "v-viii",
+				"publicationTitle": "ET-Studies",
+				"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3289298&journal_code=ETS",
+				"volume": "12",
+				"attachments": [],
+				"tags": [],
+				"notes": [],
+				"seeAlso": []
+			}
+		]
+	},
+	{
+		"type": "web",
+		"url": "https://poj.peeters-leuven.be/content.php?url=issue&journal_code=LS&issue=1&vol=43",
+		"items": "multiple"
+	},
+	{
+		"type": "web",
+		"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3290165&journal_code=STC",
+		"items": [
+			{
+				"itemType": "journalArticle",
+				"title": "Legislative Acts and Document Forms of the Apostolic See",
+				"creators": [
+					{
+						"creatorType": "author",
+						"lastName": "Huels",
+						"firstName": " John M."
+					}
+				],
+				"date": "2021",
+				"DOI": "10.2143/STC.55.1.3290165",
+				"ISSN": "2295-3027",
+				"abstractNote": "The Apostolic See principally employs four document forms for its legislation: the Apostolic Constitution, the Apostolic Letter given motu proprio, the Rescript ex audientia Sanctissimi, and the General Decree. This study explores the characteristics of each of these document forms, exemplifying them with the legislative acts promulgated in the pontificate of Benedict XVI and comparing their number to those of Pope Francis in the same period of time. The study shows that no document form is used exclusively for legislation but also may at times be doctrinal or administrative, so it often falls to a competent canonist to determine the precise nature and weight of a document of the Apostolic See.\\n4207 Le Siège apostolique emploie principalement quatre formes de documents pour sa législation: la Constitution apostolique, la Lettre apostolique motu proprio, le Rescrit ex audientia Sanctissimi et le décret général. Cette étude explore les caractéristiques de chacune de ces formes de documents, en les illustrant avec les actes législatifs promulgués dans le pontificat de Benoît XVI et en comparant leur nombre à ceux du pape François à la même période. L’étude montre qu’aucune forme de document n’est utilisée exclusivement pour la législation mais peut aussi parfois être doctrinale ou administrative, de sorte qu’il incombe souvent à un canoniste compétent de déterminer la nature précise et le poids d’un document du Siège apostolique.",
+				"issue": "1/2",
+				"libraryCatalog": "ubtue_Peeters",
+				"pages": "367-403",
+				"publicationTitle": "Studia Canonica",
+				"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3290165&journal_code=STC",
+				"volume": "55",
+				"attachments": [],
+				"tags": [],
+				"notes": [],
+				"seeAlso": []
+			}
+		]
+	},
+	{
+		"type": "web",
+		"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3290159",
+		"items": [
+			{
+				"itemType": "journalArticle",
+				"title": "Oikonomìa and Remarriage in the Orthodox Tradition:  A Pastoral Solution for the Catholic Church?",
+				"creators": [
+					{
+						"creatorType": "author",
+						"lastName": "Connolly",
+						"firstName": " Patrick"
+					}
+				],
+				"date": "2021",
+				"DOI": "10.2143/STC.55.1.3290159",
+				"ISSN": "2295-3027",
+				"abstractNote": "The pastoral problem of divorce and remarriage among Catholics, especially in the developed world, has caused some Catholic authors to give attention to the Orthodox notion of oikonomìa and how it might be applied to the marriage discipline of the Catholic Church. The pastoral crisis has created favourable comment from Catholic writers on Eastern marriage practices, which allow remarriage after a period of penance. This article considers whether this truly is a viable pastoral solution or is in fact incompatible with the Catholic understanding of marital indissolubility.\\n4207 Le problème pastoral du divorce et du remariage chez les catholiques, surtout dans les pays développés, a amené certains auteurs catholiques à s’intéresser à la notion orthodoxe d’oikonomìa et à la manière dont elle pourrait être appliquée à la discipline matrimoniale de l’Église catholique. La crise pastorale a suscité des commentaires favorables de la part des auteurs catholiques sur les pratiques orientales en matière de mariage, qui permettent un remariage après une période de pénitence. Cet article examine si cette solution pastorale est vraiment viable ou si elle est en fait incompatible avec la conception catholique de l’indissolubilité conjugale.",
+				"issue": "1/2",
+				"libraryCatalog": "ubtue_Peeters",
+				"pages": "209-243",
+				"publicationTitle": "Studia Canonica",
+				"shortTitle": "Oikonomìa and Remarriage in the Orthodox Tradition",
+				"url": "https://poj.peeters-leuven.be/content.php?url=article&id=3290159",
+				"volume": "55",
+				"attachments": [],
+>>>>>>> master
 				"tags": [],
 				"notes": [],
 				"seeAlso": []
